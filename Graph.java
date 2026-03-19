@@ -1,3 +1,6 @@
+import java.util.Deque;
+import java.util.Map;
+
 public class Graph {
 
 	//ATTRIBUT ?
@@ -17,7 +20,7 @@ public class Graph {
         return null ;
     }
 
-    public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit,double k) {
+    public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
         //TODO
         return null ;
     }
