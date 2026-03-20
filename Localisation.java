@@ -1,9 +1,10 @@
 
 public class Localisation {
-    private int id, latitude, longitude, altitude;
-    private String nom;
+    private final int id;
+    private final double latitude, longitude, altitude;
+    private final String nom;
 
-    public Localisation(int id, int latitude, int longitude, int altitude, String nom) {
+    public Localisation(int id, double latitude, double longitude, double altitude, String nom) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -15,15 +16,15 @@ public class Localisation {
         return id;
     }
 
-    public int getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public int getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public int getAltitude() {
+    public double getAltitude() {
         return altitude;
     }
 
