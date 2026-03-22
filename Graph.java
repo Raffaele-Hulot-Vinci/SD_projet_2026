@@ -52,13 +52,47 @@ public class Graph {
                 
             }
         }
-        //TODO
 		return result.toArray(new Localisation[0]);
     }
 
     public Deque<Localisation> trouverCheminLePlusCourtPourContournerLaZoneInondee(long idOrigin, long idDestination, Localisation[] floodedZone) {
 		//TODO
-        return null ;
+        Set<Localisation> flooded = new HashSet<>(Arrays.asList(floodedZone));
+        Map<Localisation, Localisation> parent = new HashMap<>();
+
+        Queue<Localisation> queue = new LinkedList<>();
+        Set<Localisation> visited = new HashSet<>();
+
+        Localisation start = nodes.get(idOrigin);
+        Localisation end = nodes.get(idDestination);
+
+        queue.add(start);
+        visited.add(start);
+
+        while (!queue.isEmpty()){
+            Localisation current = queue.poll();
+
+            if (current.equals(end)) break;
+
+            for (Rue rue : localisationListMap.get(current)) {
+                Localisation neighbor = rue.getArrive();
+                if (!visited.contains(neighbor) && !flooded.contains(neighbor)){
+                    visited.add(neighbor);
+                    parent.put(neighbor, current);
+                    queue.add(neighbor);
+                }
+
+            }
+        }
+
+        Deque<Localisation> path = new LinkedList<>();
+        Localisation curr = end;
+
+        while (curr != null){
+            path.addFirst(curr);
+            curr = parent.get(curr);
+        }
+        return path;
     }
 
     public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
