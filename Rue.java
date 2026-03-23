@@ -3,7 +3,7 @@ public class Rue {
     private final double distance, pente;
     private final String nom;
 
-    public Rue(Localisation depart, Localisation arrive, int distance, String nom) {
+    public Rue(Localisation depart, Localisation arrive, double distance, String nom) {
         this.depart = depart;
         this.arrive = arrive;
         this.distance = distance;
@@ -22,6 +22,10 @@ public class Rue {
 
     public double getDistance() {
         return distance;
+    }
+
+    public double getPente() {
+        return pente;
     }
 
     public String getNom() {

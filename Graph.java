@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 public class Graph {
@@ -5,26 +9,53 @@ public class Graph {
 	//ATTRIBUT ?
 	//TODO
     Map<Long, Localisation> nodes;
-    Map<Localisation, HashSet<Rue>> localisationListMap;
 
     public Graph(String localisations, String roads)  {
         //TODO
         nodes = new HashMap<>();
-        localisationListMap = new HashMap<>();
 
-        Scanner scanL = new Scanner(localisations);
-        while (scanL.hasNext()){
-            String[] rawL = scanL.next().split(",");
-            int id = Integer.parseInt(rawL[0]);
-            String nom = rawL[1];
-            double latitude = Double.parseDouble(rawL[2]);
-            double longitude = Double.parseDouble(rawL[3]);
-            double altitude = Double.parseDouble(rawL[4]);
-            Localisation localisation = new Localisation(id, latitude, longitude, altitude, nom);
-            localisationListMap.put(localisation, new HashSet<Rue>());
+        nodeInit(localisations);
+
+        rueInit(roads);
+    }
+
+    private void nodeInit(String localisations){
+        try (BufferedReader br = new BufferedReader(new FileReader(localisations))){
+            String line = br.readLine();
+            while ((line = br.readLine()) != null) {
+                String[] raw = line.split(",");
+                long id = Long.parseLong(raw[0]);
+                String nom = raw[1];
+                double latitude = Double.parseDouble(raw[2]);
+                double longitude = Double.parseDouble(raw[3]);
+                double altitude = Double.parseDouble(raw[4]);
+                Localisation localisation = new Localisation(id, latitude, longitude, altitude, nom);
+                nodes.put(localisation.getId(), localisation);
+            }
+        }catch(FileNotFoundException e){
+            System.out.println(e);
+        }catch(IOException e){
+            System.out.println(e);
         }
+    }
 
-
+    public void rueInit(String rues){
+        try (BufferedReader br = new BufferedReader(new FileReader(rues))){
+            String line = br.readLine();
+            while ((line = br.readLine()) != null) {
+                String[] raw = line.split(",");
+                long idSource = Long.parseLong(raw[0]);
+                long idTarget = Long.parseLong(raw[1]);
+                double distance = Double.parseDouble(raw[2]);
+                String nom = raw[3];
+                Rue rue = new Rue(nodes.get(idSource), nodes.get(idTarget), distance, nom);
+                nodes.get(rue.getDepart().getId()).getRues().add(rue);
+            }
+        }catch(FileNotFoundException e){
+            System.out.println(e);
+        }catch(IOException e){
+            System.out.println(e);
+        }
     }
 
     public Localisation[] determinerZoneInondee(long[] idsOrigin,double epsilon) {
