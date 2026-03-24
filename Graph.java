@@ -64,15 +64,16 @@ public class Graph {
         List<Localisation> result = new ArrayList<>();
 
         for (long l : idsOrigin) {
-            Localisation start = nodes.get(idsOrigin);
+            Localisation start = nodes.get(l);
+            if(start != null){
             queue.add(start);
-            visited.add(start);
+            visited.add(start);}
         }
 
         while (!queue.isEmpty()){
             Localisation current = queue.poll();
             result.add(current);
-            for (Rue rue : localisationListMap.get(current)) {
+            for (Rue rue : current.getRues()) {
                 Localisation neighbor = rue.getArrive();
                 if(!visited.contains(neighbor)){
                     if(neighbor.getAltitude() <= current.getAltitude() + epsilon){
@@ -105,7 +106,7 @@ public class Graph {
 
             if (current.equals(end)) break;
 
-            for (Rue rue : localisationListMap.get(current)) {
+            for (Rue rue : current.getRues()) {
                 Localisation neighbor = rue.getArrive();
                 if (!visited.contains(neighbor) && !flooded.contains(neighbor)){
                     visited.add(neighbor);
