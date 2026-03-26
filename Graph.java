@@ -6,7 +6,19 @@ import java.util.*;
 
 public class Graph {
 
-	//ATTRIBUT ?
+	//ATTRIBUT
+    private static class State {
+        Localisation node;
+        double time;
+        double speed;
+
+        public State(Localisation node, double time, double speed) {
+            this.node = node;
+            this.time = time;
+            this.speed = speed;
+        }
+    }
+
 	//TODO
     Map<Long, Localisation> nodes;
 
@@ -129,7 +141,53 @@ public class Graph {
 
     public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
         //TODO
-        return null ;
+        // Résultat final
+        HashMap<Localisation,Double> tFlood = new HashMap<>();
+        // PriorityQueue pour traiter le noeud le plus rapide en premier
+        PriorityQueue<State> pq = new PriorityQueue<>();
+
+        // Initialisation : sources de l’inondation
+        for (long l : idsOrigin) {
+            Localisation start = nodes.get(l);
+
+            if (start != null) {
+
+                double time = 0; // sources déjà inondées → t=0
+                double speed = vWaterInit;
+
+                tFlood.put(start, time);
+                pq.add(new State(start, time, speed));
+            }
+        }
+
+        // Boucle principale de propagation (Dijkstra adapté au temps)
+        while (!pq.isEmpty()) {
+            
+            State current = pq.poll();
+
+            // Si un meilleur temps est déjà enregistré pour ce noeud, on ignore
+            if (current.time > tFlood.get(current.node)) continue;
+
+            // Parcours des voisins
+            for (Rue rue : current.node.getRues()) {
+                Localisation neighbor = rue.getArrive();
+
+                double newSpeed = current.speed + k * rue.getPente();
+
+                // Si la vitesse est nulle ou negative, l'eau ne peut pas passer
+                if (newSpeed <= 0) continue;
+
+                // Calcul du temps pour atteindre le voisin
+                double newTime = current.time + rue.getDistance() / newSpeed;
+
+                // Condition Dijkstra : si voisin jamais atteint ou meilleur temps trouvé
+                if (!tFlood.containsKey(neighbor) || newTime < tFlood.get(neighbor)) {
+                    tFlood.put(neighbor, newTime);                     // mise à jour du temps minimal
+                    pq.add(new State(neighbor, newTime, newSpeed));    // ajout dans PQ
+                }
+            }
+        }
+        return tFlood ;
     }
 
     public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idOrigin, long idEvacuation, double vVehicule, Map<Localisation,Double> tFlood) {
