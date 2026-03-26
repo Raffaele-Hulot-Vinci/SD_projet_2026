@@ -7,7 +7,7 @@ import java.util.*;
 public class Graph {
 
 	//ATTRIBUT
-    private static class State {
+    public class State implements Comparable<State> {
         Localisation node;
         double time;
         double speed;
@@ -16,6 +16,11 @@ public class Graph {
             this.node = node;
             this.time = time;
             this.speed = speed;
+        }
+
+        @Override
+        public int compareTo(State other) {
+            return Double.compare(this.time, other.time);
         }
     }
 
@@ -138,57 +143,73 @@ public class Graph {
         }
         return path;
     }
+public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
+    // Résultat final : temps d'inondation pour chaque noeud atteint
+    Map<Localisation, Double> tFlood = new HashMap<>();
 
-    public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
-        //TODO
-        // Résultat final
-        HashMap<Localisation,Double> tFlood = new HashMap<>();
-        // PriorityQueue pour traiter le noeud le plus rapide en premier
-        PriorityQueue<State> pq = new PriorityQueue<>();
+    // PriorityQueue pour traiter le noeud le plus rapide en premier
+    PriorityQueue<State> pq = new PriorityQueue<>();
 
-        // Initialisation : sources de l’inondation
-        for (long l : idsOrigin) {
-            Localisation start = nodes.get(l);
-
-            if (start != null) {
-
-                double time = 0; // sources déjà inondées → t=0
-                double speed = vWaterInit;
-
-                tFlood.put(start, time);
-                pq.add(new State(start, time, speed));
-            }
+    // Initialisation : sources de l’inondation
+    for (long id : idsOrigin) {
+        Localisation start = nodes.get(id);
+        if (start != null) {
+            double time = 0.0; // source déjà inondée à t=0
+            tFlood.put(start, time);
+            pq.add(new State(start, time, vWaterInit));
         }
-
-        // Boucle principale de propagation (Dijkstra adapté au temps)
-        while (!pq.isEmpty()) {
-            
-            State current = pq.poll();
-
-            // Si un meilleur temps est déjà enregistré pour ce noeud, on ignore
-            if (current.time > tFlood.get(current.node)) continue;
-
-            // Parcours des voisins
-            for (Rue rue : current.node.getRues()) {
-                Localisation neighbor = rue.getArrive();
-
-                double newSpeed = current.speed + k * rue.getPente();
-
-                // Si la vitesse est nulle ou negative, l'eau ne peut pas passer
-                if (newSpeed <= 0) continue;
-
-                // Calcul du temps pour atteindre le voisin
-                double newTime = current.time + rue.getDistance() / newSpeed;
-
-                // Condition Dijkstra : si voisin jamais atteint ou meilleur temps trouvé
-                if (!tFlood.containsKey(neighbor) || newTime < tFlood.get(neighbor)) {
-                    tFlood.put(neighbor, newTime);                     // mise à jour du temps minimal
-                    pq.add(new State(neighbor, newTime, newSpeed));    // ajout dans PQ
-                }
-            }
-        }
-        return tFlood ;
     }
+
+    // Boucle principale de propagation
+    while (!pq.isEmpty()) {
+        State current = pq.poll();
+        Localisation node = current.node;
+
+        // Si un meilleur temps est déjà enregistré, on ignore
+        if (current.time > tFlood.get(node)) continue;
+
+        // Parcours des voisins
+        for (Rue rue : node.getRues()) {
+            Localisation neighbor = rue.getArrive();
+
+            // Calcul de la vitesse finale sur le voisin
+            double newSpeed;
+            double altitudeDiff = neighbor.getAltitude() - node.getAltitude();
+            double S = rue.getPente();
+            if (altitudeDiff < 0) {
+                // pente descendante
+                newSpeed = current.speed + k * S;
+            } else {
+                // pente montante
+                newSpeed = current.speed - k * S;
+            }
+
+            // Si la vitesse finale est négative ou nulle, l’eau ne peut pas se propager
+            if (newSpeed <= 0) continue;
+
+            // Calcul du temps pour atteindre le voisin
+            double newTime = current.time + rue.getDistance() / newSpeed;
+
+            // Mise à jour si c’est le premier passage ou un temps plus rapide
+            if (!tFlood.containsKey(neighbor) || newTime < tFlood.get(neighbor)) {
+                tFlood.put(neighbor, newTime);
+                pq.add(new State(neighbor, newTime, newSpeed));
+            }
+        }
+    }
+
+    // --- TRI CHRONOLOGIQUE ---
+    List<Map.Entry<Localisation, Double>> chronologie = new ArrayList<>(tFlood.entrySet());
+    chronologie.sort(Map.Entry.comparingByValue()); // tri par temps d'inondation croissant
+
+    // Création d'une LinkedHashMap pour garder l'ordre
+    Map<Localisation, Double> tFloodSorted = new LinkedHashMap<>();
+    for (Map.Entry<Localisation, Double> entry : chronologie) {
+        tFloodSorted.put(entry.getKey(), entry.getValue());
+    }
+
+    return tFloodSorted; // Map<Localisation, Double> triée par temps croissant
+}
 
     public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idOrigin, long idEvacuation, double vVehicule, Map<Localisation,Double> tFlood) {
         //TODO
