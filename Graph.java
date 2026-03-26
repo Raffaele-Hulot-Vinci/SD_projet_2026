@@ -104,7 +104,16 @@ public class Graph {
         while (!queue.isEmpty()){
             Localisation current = queue.poll();
 
-            if (current.equals(end)) break;
+            if (current.equals(end)){
+                Deque<Localisation> path = new LinkedList<>();
+                Localisation curr = end;
+
+                while (curr != null){
+                    path.addFirst(curr);
+                    curr = parent.get(curr);
+                }
+                return path;
+            }
 
             for (Rue rue : current.getRues()) {
                 Localisation neighbor = rue.getArrive();
@@ -117,14 +126,8 @@ public class Graph {
             }
         }
 
-        Deque<Localisation> path = new LinkedList<>();
-        Localisation curr = end;
+        throw new RuntimeException("Pas de chemin trouvé");
 
-        while (curr != null){
-            path.addFirst(curr);
-            curr = parent.get(curr);
-        }
-        return path;
     }
 
     public Map<Localisation,Double> determinerChronologieDeLaCrue(long[] idsOrigin, double vWaterInit, double k) {
