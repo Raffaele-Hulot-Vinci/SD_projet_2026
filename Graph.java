@@ -39,7 +39,7 @@ public class Graph {
         }
     }
 
-    public void rueInit(String rues){
+    private void rueInit(String rues){
         try (BufferedReader br = new BufferedReader(new FileReader(rues))){
             String line = br.readLine();
             while ((line = br.readLine()) != null) {
@@ -136,6 +136,4 @@ public class Graph {
         //TODO
 		return null ;
     }
-
-
 }
