@@ -6,7 +6,7 @@ public class Localisation {
     private final double latitude, longitude, altitude;
     private final String nom;
 
-    HashSet<Rue> rues;
+    private HashSet<Rue> rues;
 
     public Localisation(long id, double latitude, double longitude, double altitude, String nom) {
         this.id = id;

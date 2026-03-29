@@ -215,7 +215,60 @@ public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
 }
 
     public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idOrigin, long idEvacuation, double vVehicule, Map<Localisation,Double> tFlood) {
-        //TODO
-		return null ;
+        Map<Long, Double> tempsPourLoc = new HashMap<>();
+        Map<Long, Double> tempsPourLocDef = new HashMap<>();
+        Map<Localisation, Localisation> parent = new HashMap<>();
+
+        Long current = idOrigin;
+        //tempsPourLoc.put(current, null);
+        tempsPourLocDef.put(current, 0.0);
+        parent.put(nodes.get(current), null);
+
+        Long smallestId = -1L;
+        while(smallestId != idOrigin){
+            Double tcurrent = tempsPourLocDef.get(current);
+            for(Rue rue: nodes.get(current).getRues()){
+                Long arriverId = rue.getArrive().getId();
+                if(tempsPourLocDef.containsKey(arriverId)){
+                    continue;
+                }
+                Double temp = rue.getDistance()/vVehicule + tcurrent;
+                Localisation arrive = nodes.get(arriverId);
+                if((!tempsPourLoc.containsKey(arriverId) || tempsPourLoc.get(arriverId) > temp) && (!tFlood.containsKey(arrive) || temp < tFlood.get(arrive))){
+                    tempsPourLoc.put(arriverId, temp);
+                    parent.put(arrive, nodes.get(current));
+                }
+            }
+
+            Double smallest = Double.MAX_VALUE;
+            smallestId = idOrigin;
+            for(Long next: tempsPourLoc.keySet()){
+                Double temp = tempsPourLoc.get(next);
+                if(temp < smallest){
+                    smallest = temp;
+                    smallestId = next;
+                }
+            }
+
+            if(smallestId == idEvacuation) {
+                Deque<Localisation> path = new LinkedList<Localisation>();
+                path.addFirst(nodes.get(smallestId));
+                Localisation follow = parent.get(nodes.get(smallestId));
+                while(follow != null){
+                    path.addFirst(follow);
+                    follow = parent.get(follow);
+                }
+
+                return path;
+            }
+
+            current = smallestId;
+            tempsPourLocDef.put(current, tempsPourLoc.get(current));
+            tempsPourLoc.remove(current);
+        }
+
+		throw new RuntimeException("pas de chemin entre " + idOrigin + " et " + idEvacuation);
+
     }
+
 }
